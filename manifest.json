@@ -1,0 +1,9 @@
+{
+  "manifest_version": 3,
+  "name": "Voca",
+  "version": "0.1.0",
+  "description": "Right-click a word to fetch its definition.",
+  "permissions": ["contextMenus"],
+  "host_permissions": ["https://api.dictionaryapi.dev/*"],
+  "background": { "service_worker": "background.js" }
+}
