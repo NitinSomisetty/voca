@@ -18,11 +18,10 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 
   try {
-    const { definition, example, phonetic } = await fetchDefinition(word);
+    const { definition, example } = await fetchDefinition(word);
     // For MVP we just log; later we’ll store & show in UI
     console.log("Voca →", {
       word,
-      phonetic,
       definition,
       example: example || "(no example provided)"
     });
@@ -44,27 +43,19 @@ function sanitizeToSingleWord(text) {
 }
 
 async function fetchDefinition(word) {
-  // Free Dictionary API (no key needed)
-  const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    // 404 here usually means the word isn't found in this API
-    throw new Error(`HTTP ${res.status} for ${url}`);
-  }
+  // call the API
+  const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+  if (!res.ok) throw new Error("Word not found");
 
   const data = await res.json();
   const entry = data[0] || {};
-  const phonetic =
-    entry.phonetic ||
-    (Array.isArray(entry.phonetics) && entry.phonetics[0]?.text) ||
-    "";
 
-  // meanings: [{ partOfSpeech, definitions: [{definition, example, ...}], ...}]
   const firstMeaning = Array.isArray(entry.meanings) ? entry.meanings[0] : null;
   const firstDef = firstMeaning?.definitions?.[0] || {};
+
+  // always return definition and sentence
   return {
     definition: firstDef.definition || "No definition found.",
-    example: firstDef.example || "",
-    phonetic
+    example: firstDef.example || `Use "${word}" in a sentence.`
   };
 }
