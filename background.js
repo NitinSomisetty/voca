@@ -2,7 +2,7 @@
 chrome.runtime.onInstalled.addListener(() => {
 	chrome.contextMenus.create({
 		id: "voca_save",
-		title: "Save to Voca",
+		title: "Voca",
 		contexts: ["selection"], // only show when some text is selected
 	});
 });
@@ -43,6 +43,13 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 	}
 });
 
+chrome.windows.create({
+  url: chrome.runtime.getURL("popup.html"),
+  type: "popup",
+  width: 350,
+  height: 400
+});
+
 // --- Helpers ---
 
 // Keep MVP predictable: reduce any selection to a single dictionary-friendly token
@@ -75,3 +82,4 @@ async function fetchWordInfo(word) {
 
 	return { word, definition, example };
 }
+// Save to storage
