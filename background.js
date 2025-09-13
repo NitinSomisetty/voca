@@ -25,18 +25,19 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 			const already = words.find((w) => w.word.toLowerCase() === normalized);
 			if (!already) {
 				words.push({ word: normalized, definition, example });
-				chrome.storage.local.set({ words }, () => {
-					console.log("Voca →", {
-						word,
-						definition,
-						example: example || "(no example provided)",
-					});
-				});
-			} else {
-				console.log(
-					`Voca: "${normalized}" already exists, skipping log and save.`
-				);
 			}
+			// Always save lastWord and open popup instantly
+			chrome.storage.local.set(
+				{ words, lastWord: { word, definition, example } },
+				() => {
+					chrome.windows.create({
+						url: chrome.runtime.getURL("popup.html"),
+						type: "popup",
+						width: 350,
+						height: 400,
+					});
+				}
+			);
 		});
 	} catch (err) {
 		console.error("Voca: failed to fetch definition for", word, err);
@@ -44,10 +45,10 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 });
 
 chrome.windows.create({
-  url: chrome.runtime.getURL("popup.html"),
-  type: "popup",
-  width: 350,
-  height: 400
+	url: chrome.runtime.getURL("popup.html"),
+	type: "popup",
+	width: 350,
+	height: 400,
 });
 
 // --- Helpers ---
@@ -73,11 +74,26 @@ async function fetchWordInfo(word) {
 
 	// 2. If no example, fallback to Wordnik
 	if (!example) {
-		const fallbackURL = `https://api.wordnik.com/v4/word.json/${word}/examples?api_key=YOUR_API_KEY&limit=1`;
-		let res2 = await fetch(fallbackURL);
-		let data2 = await res2.json();
+		try {
+			const fallbackURL = `https://api.wordnik.com/v4/word.json/${word}/examples?api_key=YOUR_API_KEY&limit=1`;
+			let res2 = await fetch(fallbackURL);
+			let data2 = await res2.json();
+			example = data2.examples?.[0]?.text || null;
+		} catch (e) {
+			example = null;
+		}
+	}
 
-		example = data2.examples?.[0]?.text || null;
+	// 3. If still no example, try a third API (e.g., Free Dictionary API)
+	if (!example) {
+		try {
+			const thirdURL = `https://api.datamuse.com/words?sp=${word}&md=d&max=1`;
+			let res3 = await fetch(thirdURL);
+			let data3 = await res3.json();
+			// Datamuse doesn't provide examples, but you can add more APIs here
+		} catch (e) {
+			// No example found
+		}
 	}
 
 	return { word, definition, example };

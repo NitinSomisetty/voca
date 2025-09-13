@@ -1,12 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => {
-  chrome.storage.local.get("lastWord", (data) => {
-    if (data.lastWord) {
-      const { word, definition, example } = data.lastWord;
-      document.getElementById("word").textContent = word;
-      document.getElementById("definition").textContent = definition;
-      document.getElementById("example").textContent = example || "(no example)";
-    } else {
-      document.getElementById("word").textContent = "No word found";
-    }
-  });
+	chrome.storage.local.get("lastWord", (data) => {
+		const wordElem = document.getElementById("word");
+		const defElem = document.getElementById("definition");
+		const exElem = document.getElementById("example");
+		if (data.lastWord) {
+			const { word, definition, example } = data.lastWord;
+			wordElem.textContent = word || "No word found";
+			defElem.textContent = definition || "No definition found.";
+			exElem.textContent = example || "No example found.";
+		} else {
+			wordElem.textContent = "No word found";
+			defElem.textContent = "";
+			exElem.textContent = "";
+		}
+	});
 });
