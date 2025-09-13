@@ -29,14 +29,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 			// Always save lastWord and open popup instantly
 			chrome.storage.local.set(
 				{ words, lastWord: { word, definition, example } },
-				() => {
-					chrome.windows.create({
-						url: chrome.runtime.getURL("popup.html"),
-						type: "popup",
-						width: 350,
-						height: 400,
-					});
-				}
+				() => {}
 			);
 		});
 	} catch (err) {
