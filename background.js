@@ -19,19 +19,23 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
 	try {
 		const { definition, example } = await fetchWordInfo(word);
-		// Prevent duplicate logging in console
 		chrome.storage.local.get({ words: [] }, (result) => {
 			const words = result.words;
 			const normalized = word.toLowerCase();
 			const already = words.find((w) => w.word.toLowerCase() === normalized);
 			if (!already) {
-				console.log("Voca →", {
-					word,
-					definition,
-					example: example || "(no example provided)",
+				words.push({ word: normalized, definition, example });
+				chrome.storage.local.set({ words }, () => {
+					console.log("Voca →", {
+						word,
+						definition,
+						example: example || "(no example provided)",
+					});
 				});
 			} else {
-				console.log(`Voca: "${normalized}" already exists, skipping log.`);
+				console.log(
+					`Voca: "${normalized}" already exists, skipping log and save.`
+				);
 			}
 		});
 	} catch (err) {
@@ -70,22 +74,4 @@ async function fetchWordInfo(word) {
 	}
 
 	return { word, definition, example };
-
-	// Save to Chrome storage
-	chrome.storage.local.get({ words: [] }, (result) => {
-		const words = result.words;
-
-		// Normalize before checking
-		const normalized = word.toLowerCase();
-		const already = words.find((w) => w.word.toLowerCase() === normalized);
-
-		if (!already) {
-			words.push({ word: normalized, definition, example });
-			chrome.storage.local.set({ words }, () => {
-				console.log(`Voca: saved "${normalized}"`);
-			});
-		} else {
-			console.log(`Voca: "${normalized}" already exists, skipping.`);
-		}
-	});
 }
